@@ -1,0 +1,202 @@
+---
+title: "Sino Yoga Dashboard"
+format: 
+  dashboard:
+    orientation: columns
+    nav-buttons: [github]
+    github: https://github.com/StephanieGutie63
+  html:
+    toc: true
+    toc-depth: 3
+    toc-expand: true
+    embed-resources: true
+    theme: cosmo 
+
+author: "Stephanie Gutierrez"
+date: today
+
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+# Project
+
+## Row {height=120}
+
+### Website URL
+Website URL: https://github.com/StephanieGutie63
+
+## Row
+
+### Column {width=50%}
+
+#### Project Description
+**Project Description**: This project analyzes YouTube video performance for SinoYoga. The goal is to identify which videos receive the most engaged views and understand patterns in audience engagement. The dashboard helps summarize video performance in a clear visual format.
+
+#### Data Description
+**Data Description**: The dataset contains lifetime YouTube video performance data. Each row represents a video, and the columns include information such as the video title, engaged views, and other performance metrics. The data was cleaned by standardizing column names and removing rows without video titles.
+
+#### Findings from the Data
+**Data Findings**: The analysis shows that a small number of videos generated the highest levels of engagement compared to the rest of the content. Videos with higher engaged views likely contained topics, formats, or styles that resonated more strongly with viewers. The data also suggests that audience engagement is unevenly distributed, meaning a few successful videos drive much of the channel’s performance.
+
+### Column {width=50%}
+
+#### Top 10 Videos
+**Top 10 Videos**: This chart displays the videos with the highest number of engaged views. Longer bars represent videos that attracted more audience interaction and watch activity. The chart helps identify the channel’s strongest-performing content and reveals which topics or videos are most popular with viewers.
+
+#### Videos CTR
+**Videos CTR**: The data suggests that videos with higher engaged views also tended to perform better in CTR. Most of the remaining videos had similar CTR values, indicating consistent audience interest across several yoga-related topics. Videos focused on meditation, flexibility, stretching, and yoga routines appeared frequently among the top-performing content, suggesting these topics resonate well with viewers.The chart also suggests that engaging titles and visually appealing thumbnails likely contributed to higher CTR performance. Videos that clearly communicated benefits or specific yoga goals may have encouraged more viewers to click and watch.
+
+#### Data Table 
+**Data Table**: The data table highlights the top-performing SinoYoga videos based on views, engaged views, subscribers gained, revenue, and CTR. The video with the highest views and engaged views significantly outperformed the others, showing that it attracted the strongest audience attention and interaction.Several videos also generated a noticeable increase in subscribers, suggesting that viewers found the content valuable enough to continue following the channel. Revenue values generally increased alongside higher engagement metrics, indicating a positive relationship between audience activity and monetization performance.
+
+# Dashboard
+
+```{r}
+#| message: false
+#| warning: false
+#| include: false
+library(ggplot2)
+library(tidyverse)
+library(gt)
+library(readxl)
+library(plotly)
+library(scales)
+
+```
+
+```{r}
+#| label: load-data
+#| message: false
+#| warning: false
+#| include: false
+video_data <- read_excel("lifetime download with translations.xlsx") 
+```
+
+```{r}
+#| label: Prep-Data
+#| message: false
+#| warning: false
+#| include: false
+video_data<- video_data |>
+  
+    janitor::clean_names() |>
+    drop_na(video_title)
+```
+
+## Columns-Plots
+
+### Top Videos {height="60%"}
+
+```{r}
+#| echo: false
+#| title: Top 10 Videos by Views
+library(forcats)
+library(stringr)
+
+top_views <- video_data |>
+  arrange(desc(engaged_views)) |>
+  slice_head(n = 10) |>
+  mutate(video_title = str_wrap(video_title, width = 60))
+
+ggplot(top_views,
+       aes(x = fct_reorder(video_title,
+                           -engaged_views,
+                           .desc = TRUE),
+           y = engaged_views)) +
+  geom_col(fill = "blue") +
+  coord_flip() +
+  labs(
+    title = "Top 10 YouTube Videos by Views",
+    x = "Video",
+    y = "Views"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_text(size = 7)
+  )
+
+```
+
+### Video CTR {height="40%"}
+
+```{r}
+#| echo: false
+#| title: Video CTR
+
+top_ctr <- video_data |>
+  arrange(desc(impressions_click_through_rate_percent)) |>
+  slice_head(n = 10) |>
+  mutate(video_title = str_wrap(video_title, width = 80))
+
+ggplot(
+  top_ctr,
+  aes(
+    x = reorder(
+      video_title,
+      impressions_click_through_rate_percent
+    ),
+    y = impressions_click_through_rate_percent
+  )
+)+
+  geom_col(fill = "orange") +
+  coord_flip() +
+  labs(
+    title = "Top Videos by Click-Through Rate",
+    x = "Video",
+    y = "CTR (%)"
+  ) +
+  theme_minimal()
+
+
+```
+
+## Table
+
+```{r}
+#| echo: false
+#| title: Data Table
+library(gt)
+
+library(DT)
+
+top_table <- video_data |>
+  select(
+    video_title,
+    views,
+    engaged_views,
+    subscribers,
+    estimated_revenue_usd,
+    impressions_click_through_rate_percent
+  ) |>
+   rename(
+    Title = video_title,
+    Views = views,
+    EngagedViews = engaged_views,
+    Subs = subscribers,
+    Revenue = estimated_revenue_usd,
+    CTR = impressions_click_through_rate_percent
+  ) |>
+  arrange(desc(Views)) |>
+  slice_head(n = 15) |>
+  mutate(
+ Title = stringr::str_trunc(Title, 40)
+)
+
+datatable(
+  top_table,
+  options = list(
+    scrollX = TRUE,
+    pageLength = 10,
+    autoWidth = TRUE
+  ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+) |>
+  formatStyle(
+    columns = names(top_table),
+    fontSize = '11px',
+)
+```
