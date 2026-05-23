@@ -4,7 +4,7 @@ format:
   dashboard:
     orientation: columns
     nav-buttons: [github]
-    github: https://github.com/StephanieGutie63
+    github: https://github.com/StephanieGutie63/W10Dashboard
   html:
     toc: true
     toc-depth: 3
@@ -20,13 +20,13 @@ execute:
   warning: false
   message: false
 ---
+# Website Link
+
+## Website URL
+
+Website Link: 
 
 # Project
-
-## Row {height=120}
-
-### Website URL
-Website URL: https://github.com/StephanieGutie63
 
 ## Row
 
